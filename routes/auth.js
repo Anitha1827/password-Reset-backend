@@ -3,9 +3,7 @@ const router = express.Router();
 const mongoose = require ("mongoose")
 const User = require("../models/user.js")
 const bcrypt = require("bcrypt");
-const crypto = require('crypto');
 const nodemailer = require("nodemailer");
-const jwt = require('jsonwebtoken');
 const randomstring = require('randomstring');
 
 //Implement the forgot password route
