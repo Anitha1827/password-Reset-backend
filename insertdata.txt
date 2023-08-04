@@ -1,0 +1,42 @@
+const { MongoClient } = require('mongodb');
+  //data inserting into DB
+  const uri = 'mongodb+srv://anithah2711:anitha@cluster3.nuu9tkf.mongodb.net/?retryWrites=true&w=majority';
+  async function connectToDatabase() {
+    try {
+      const client = await MongoClient.connect(uri);
+      console.log('Connected to MongoDB');
+      return client;
+    } catch (error) {
+      console.error('Error connecting to MongoDB:', error);
+      process.exit(1);
+    }
+  }
+  const client = connectToDatabase();
+
+  async function insertData() {
+    try {
+      // Connect to MongoDB
+      const client = await MongoClient.connect(uri);
+      const db = client.db('PASSWORDREST'); // Replace 'your_database_name' with your actual database name
+      const collection = db.collection('data'); // Replace 'your_collection_name' with your actual collection name
+  
+      // Prepare the data you want to insert (as a JavaScript object)
+      const dataToInsert = {
+        email: 'anitha@gmail.com',
+        password: '123'
+      };
+  
+      // Insert the data into the collection
+      const result = await collection.insertOne(dataToInsert);
+      console.log('Data inserted successfully:', result.insertedId);
+  
+      // Close the connection
+      client.close();
+    } catch (error) {
+      console.error('Error inserting data:', error);
+    }
+  }
+  
+  // Call this function to insert data
+  insertData();
+//data inseting into DB ends
