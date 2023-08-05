@@ -34,7 +34,7 @@ user.resetToken = randomString;
 await user.save();
 
   // Send the reset password link to the user's email
-  const resetLink = `https://serene-churros-d3cac2.netlify.app/ResetPasswordPage/token=${randomString}`; 
+  const resetLink = `https://serene-churros-d3cac2.netlify.app/resetpassword/${randomString}`; 
 
   // Define the sendResetEmail function
 const sendResetEmail = (email, resetLink) => {
@@ -75,30 +75,60 @@ sendResetEmail(email, resetLink, randomString);
 
 
 // Reset Password Route
-router.post('/reset-password', async (req, res) => {
-  const { randomString, newPassword } = req.body;
+router.post('/reset-password/:randomString', async (req, res) => {
+  const { randomString } = req.params;
+  const { newPassword } = req.body;
 
   try {
-      // Retrieve the user from the database using the random string
-      const user = await User.findOne({ resetToken: randomString});
+    const user = await User.findOne({ randomString });
 
-      if(user) {
-        // Hash the new password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!user) {
+      return res.status(404).json({ error: 'Invalid random string' });
+    }
 
-        user.password = hashedPassword;
-        user.resetToken = null;
+    // Update user's password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.randomString = null; // Clear the random string
+    await user.save();
 
-        await user.save();
-
-        return res.status(200).json( {message: "Password updated successfully"})
-      }else {
-        return res.status(404).json({ error: 'Invalid or expired link' });
-      }
+    return res.status(200).json({ message: 'Password reset successful' });
   } catch (error) {
-    console.error('Error updating password:', error);
+    console.error('Error resetting password:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// Register page
+
+  router.post('/register' , async (req, res) => {
+    const { email, password } = req.body;
+    
+    try {
+      // Check if a user with the same email already exists
+      const existingUser = await User.findOne({ email });
+      
+      if (existingUser) {
+        return res.status(409).json({ error: 'Email already in use' });
+      }
+  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // Create a new user
+      const newUser = new User({
+        email: email,
+        password: hashedPassword,
+      });
+  
+      await newUser.save();
+  
+      return res.status(201).json({ message: 'User registered successfully' });
+    } catch (error) {
+      console.error('Error registering user:', error);
+      return res.status(500).json({ error: 'User registration failed' });
+    }
+
+  })
 
 module.exports = router;
